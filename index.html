@@ -1,103 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Fortnite Live Shop</title>
-<style>
-body {
-  background: #0b1220;
-  color: white;
-  font-family: Arial, sans-serif;
-  padding: 20px;
-  text-align: center;
-}
-
-h1 { margin-bottom: 10px; }
-#timer { font-size: 18px; margin-bottom: 20px; }
-
-.shop-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 15px;
-}
-
-.item {
-  background: #111827;
-  border-radius: 10px;
-  padding: 10px;
-  width: 160px;
-  text-align: center;
-  box-shadow: 0 0 8px rgba(0,0,0,0.5);
-}
-
-.item img {
-  width: 140px;
-  border-radius: 8px;
-}
-
-.price {
-  margin-top: 5px;
-  font-weight: bold;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Fortnite Shop</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #1c1c1c; color: #fff; margin: 0; padding: 0; }
+    h1 { text-align: center; padding: 20px; }
+    #shop { display: flex; flex-wrap: wrap; justify-content: center; }
+    .item { background: #2c2c2c; margin: 10px; padding: 10px; border-radius: 8px; width: 160px; text-align: center; transition: transform 0.2s; }
+    .item:hover { transform: scale(1.05); }
+    .item img { width: 150px; height: 150px; object-fit: contain; }
+    .item div { margin-top: 5px; }
+    .price { font-weight: bold; color: #ffd700; }
+  </style>
 </head>
 <body>
 
 <h1>Fortnite Item Shop</h1>
-<div id="timer">Loading timer…</div>
-<div class="shop-container" id="shop">Loading items…</div>
+<div id="shop"></div>
 
 <script>
-const API_KEY = "0bb8c918-19fa5ec5-2c8a4a1e-285d0816";
-const API_URL = `https://fortniteapi.io/v2/shop?lang=en&token=${API_KEY}`;
+  const shopEl = document.getElementById('shop');
 
-// Next shop reset UTC (00:00)
-function nextResetUTC() {
-  const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()+1, 0,0,0));
-}
+  // Public Fortnite API (fnbr.co)
+  const API_URL = 'https://fnbr.co/api/shop?limit=50'; // Replace with your API key if required
+  const API_KEY = ''; // Optional: add your key here if needed
 
-// Countdown
-setInterval(() => {
-  const diff = nextResetUTC() - new Date();
-  const h = Math.floor(diff / 3600000);
-  const m = Math.floor((diff % 3600000) / 60000);
-  const s = Math.floor((diff % 60000) / 1000);
-  document.getElementById("timer").textContent = 
-    `Shop refresh in ${h}h ${m}m ${s}s`;
-}, 1000);
-
-// Fetch and show shop
-fetch(API_URL)
-  .then(res => res.json())
-  .then(data => {
-    const shopEl = document.getElementById("shop");
-    shopEl.innerHTML = "";
-    
-    if (!data.shop) {
-      shopEl.innerText = "No shop data available.";
-      return;
+  fetch(API_URL, {
+    headers: {
+      'x-api-key': API_KEY
     }
-    
-    const allItems = [...data.shop.daily, ...data.shop.featured];
-    allItems.forEach(item => {
-      const vb = item.price;
-      const usd = (vb * 0.005).toFixed(2);
-      
-      const div = document.createElement("div");
-      div.className = "item";
-      div.innerHTML = `
-        <img src="${item.image}" alt="${item.name}">
-        <div class="price">${vb} V‑Bucks ($${usd})</div>
-      `;
-      shopEl.appendChild(div);
-    });
   })
-  .catch(err => {
-    document.getElementById("shop").innerText = "Failed to load shop.";
-    console.error(err);
-  });
+    .then(res => res.json())
+    .then(data => {
+      const items = data.data; // Array of shop items
+      items.forEach(item => {
+        const vbucks = item.price; // V-Bucks price
+        const usd = (vbucks * 0.005).toFixed(2); // Convert to USD
+
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <img src="${item.images.icon}" alt="${item.name}" />
+          <div><strong>${item.name}</strong></div>
+          <div class="price">${vbucks} V-Bucks (~$${usd})</div>
+        `;
+        shopEl.appendChild(div);
+      });
+    })
+    .catch(err => {
+      console.error('Error loading shop data', err);
+      shopEl.innerHTML = '<p style="color:red;">Failed to load shop data.</p>';
+    });
 </script>
 
 </body>
