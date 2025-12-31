@@ -1,52 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fortnite Shop</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #1c1c1c; color: #fff; margin: 0; padding: 0; }
-    h1 { text-align: center; padding: 20px; }
-    #shop { display: flex; flex-wrap: wrap; justify-content: center; }
-    .item { background: #2c2c2c; margin: 10px; padding: 10px; border-radius: 8px; width: 160px; text-align: center; transition: transform 0.2s; }
-    .item:hover { transform: scale(1.05); }
-    .item img { width: 150px; height: 150px; object-fit: contain; }
-    .item div { margin-top: 5px; }
-    .price { font-weight: bold; color: #ffd700; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortnite Shop Clone</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
-<h1>Fortnite Item Shop</h1>
-<div id="shop"></div>
-
-<script>
-  const shopEl = document.getElementById('shop');
-
-  fetch('https://fortnite-api.com/v2/shop/br')
-    .then(res => res.json())
-    .then(data => {
-      const items = data.data.daily.entries; // daily items
-      items.forEach(entry => {
-        const item = entry.items[0];
-        const vbucks = entry.finalPrice;
-        const usd = (vbucks * 0.005).toFixed(2);
-
-        const div = document.createElement('div');
-        div.className = 'item';
-        div.innerHTML = `
-          <img src="${item.images.icon}" alt="${item.name}" />
-          <div><strong>${item.name}</strong></div>
-          <div class="price">${vbucks} V-Bucks (~$${usd})</div>
-        `;
-        shopEl.appendChild(div);
-      });
-    })
-    .catch(err => {
-      console.error('Error loading shop data', err);
-      shopEl.innerHTML = '<p style="color:red;">Failed to load shop data.</p>';
-    });
-</script>
-
+    <header>
+        <h1>Fortnite Item Shop</h1>
+        <p>Current shop items with V-Bucks and USD prices (1 V-Buck = $0.005).</p>
+    </header>
+    <main id="shop-container">
+        <div id="loading">Loading shop data...</div>
+    </main>
+    <script src="script.js"></script>
 </body>
 </html>
