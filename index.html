@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Custom Fortnite Shop</title>
+  <title>Fortnite Shop</title>
   <style>
     body { font-family: Arial, sans-serif; background: #1c1c1c; color: #fff; margin: 0; padding: 0; }
     h1 { text-align: center; padding: 20px; }
@@ -23,21 +23,14 @@
 <script>
   const shopEl = document.getElementById('shop');
 
-  // Public Fortnite API (fnbr.co)
-  const API_URL = 'https://fnbr.co/api/shop?limit=50'; // Replace with your API key if required
-  const API_KEY = ''; // Optional: add your key here if needed
-
-  fetch(API_URL, {
-    headers: {
-      'x-api-key': API_KEY
-    }
-  })
+  fetch('https://fortnite-api.com/v2/shop/br')
     .then(res => res.json())
     .then(data => {
-      const items = data.data; // Array of shop items
-      items.forEach(item => {
-        const vbucks = item.price; // V-Bucks price
-        const usd = (vbucks * 0.005).toFixed(2); // Convert to USD
+      const items = data.data.daily.entries; // daily items
+      items.forEach(entry => {
+        const item = entry.items[0];
+        const vbucks = entry.finalPrice;
+        const usd = (vbucks * 0.005).toFixed(2);
 
         const div = document.createElement('div');
         div.className = 'item';
