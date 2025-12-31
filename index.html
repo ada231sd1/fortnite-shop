@@ -5,32 +5,37 @@
 <title>Fortnite Live Shop</title>
 <style>
 body {
-  font-family: Arial, sans-serif;
   background: #0b1220;
   color: white;
+  font-family: Arial, sans-serif;
   padding: 20px;
   text-align: center;
 }
+
 h1 { margin-bottom: 10px; }
-#timer { margin-bottom: 20px; font-size: 18px; }
+#timer { font-size: 18px; margin-bottom: 20px; }
+
 .shop-container {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 15px;
 }
+
 .item {
   background: #111827;
   border-radius: 10px;
   padding: 10px;
   width: 160px;
   text-align: center;
-  box-shadow: 0 0 10px #000;
+  box-shadow: 0 0 8px rgba(0,0,0,0.5);
 }
+
 .item img {
   width: 140px;
   border-radius: 8px;
 }
+
 .price {
   margin-top: 5px;
   font-weight: bold;
@@ -44,65 +49,55 @@ h1 { margin-bottom: 10px; }
 <div class="shop-container" id="shop">Loading items…</div>
 
 <script>
-// Fortnite API with CORS proxy (tested)
-const API = "https://api.allorigins.win/raw?url=https://fortnite-api.com/v2/shop/br";
+const API_KEY = "0bb8c918-19fa5ec5-2c8a4a1e-285d0816";
+const API_URL = `https://fortniteapi.io/v2/shop?lang=en&token=${API_KEY}`;
 
-// Calculate next shop reset (midnight UTC)
+// Next shop reset UTC (00:00)
 function nextResetUTC() {
   const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0));
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()+1, 0,0,0));
 }
 
-// Countdown timer
-function startTimer() {
-  const timerEl = document.getElementById("timer");
-  setInterval(() => {
-    const diff = nextResetUTC() - new Date();
-    if (diff <= 0) {
-      timerEl.textContent = "Refreshing soon…";
+// Countdown
+setInterval(() => {
+  const diff = nextResetUTC() - new Date();
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  document.getElementById("timer").textContent = 
+    `Shop refresh in ${h}h ${m}m ${s}s`;
+}, 1000);
+
+// Fetch and show shop
+fetch(API_URL)
+  .then(res => res.json())
+  .then(data => {
+    const shopEl = document.getElementById("shop");
+    shopEl.innerHTML = "";
+    
+    if (!data.shop) {
+      shopEl.innerText = "No shop data available.";
       return;
     }
-    const h = Math.floor(diff / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    const s = Math.floor((diff % 60000) / 1000);
-    timerEl.textContent = `Shop refresh in ${h}h ${m}m ${s}s`;
-  }, 1000);
-}
-
-// Fetch shop items
-function loadShop() {
-  fetch(API)
-    .then(res => res.json())
-    .then(data => {
-      const container = document.getElementById("shop");
-      container.innerHTML = "";
-
-      const entries = [...data.data.featured.entries, ...data.data.daily.entries];
-
-      entries.forEach(entry => {
-        const item = entry.items[0];
-        const vb = entry.finalPrice;
-        const usd = (vb * 0.005).toFixed(2);
-
-        const div = document.createElement("div");
-        div.className = "item";
-        div.innerHTML = `
-          <img src="${item.images.icon}" alt="${item.name}">
-          <div class="price">${vb} V-Bucks ($${usd})</div>
-        `;
-        container.appendChild(div);
-      });
-    })
-    .catch(err => {
-      const container = document.getElementById("shop");
-      container.textContent = "Failed to load shop.";
-      console.error(err);
+    
+    const allItems = [...data.shop.daily, ...data.shop.featured];
+    allItems.forEach(item => {
+      const vb = item.price;
+      const usd = (vb * 0.005).toFixed(2);
+      
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <img src="${item.image}" alt="${item.name}">
+        <div class="price">${vb} V‑Bucks ($${usd})</div>
+      `;
+      shopEl.appendChild(div);
     });
-}
-
-// Initialize
-startTimer();
-loadShop();
+  })
+  .catch(err => {
+    document.getElementById("shop").innerText = "Failed to load shop.";
+    console.error(err);
+  });
 </script>
 
 </body>
